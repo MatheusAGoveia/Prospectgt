@@ -1,0 +1,13 @@
+.tools/
+data/
+data-postgres/
+target/
+node_modules/
+.env
+.env.*
+!.env.example
+playwright-report/
+test-results/
+*.log
+__pycache__/
+*.pyc

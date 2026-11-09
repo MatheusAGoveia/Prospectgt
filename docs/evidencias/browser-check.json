@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-11-09T12:54:30.336Z",
+  "source": "Catálogo OpenStreetMap/Geofabrik Centro-Oeste real",
+  "resultCount": 49,
+  "analysisState": "COMPLETED",
+  "checkedLeadId": "1883d812-abb1-4371-a1f1-f6b895506d68",
+  "messageSent": false,
+  "checks": [
+    "Login individual e configuração carregada",
+    "Busca automática encontra registros OSM reais e pontos no mapa",
+    "Ficha, origem, análise básica e mensagem com nome da empresa",
+    "Cópia real, reserva persistida e evento sem alegar envio",
+    "Segundo vendedor impedido de assumir a mesma oportunidade",
+    "Feedback e carteira preservados após recarregar",
+    "Busca lenta não sobrescreve a carteira ao trocar de tela",
+    "Layout de computador, tablet e celular sem rolagem horizontal",
+    "Gestor consulta equipe e libera o teste preservando histórico"
+  ],
+  "browserErrors": []
+}

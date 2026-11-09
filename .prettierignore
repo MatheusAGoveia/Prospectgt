@@ -1,0 +1,6 @@
+.tools/
+data/
+target/
+node_modules/
+src/main/resources/static/assets/vendor/
+package-lock.json

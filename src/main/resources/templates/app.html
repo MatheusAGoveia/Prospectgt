@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    <title>Explorar · Prospectgt</title>
+    <link rel="stylesheet" href="/assets/vendor/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="/assets/app.css" />
+    <script src="/assets/vendor/leaflet/leaflet.js" defer></script>
+    <script src="/assets/app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/"
+        ><span class="brand-mark">P</span><span>Prospectgt<small>por WeztTech</small></span></a
+      >
+      <nav aria-label="Principal">
+        <button class="nav active" id="explore-nav">Explorar</button
+        ><button class="nav" id="portfolio-nav">
+          Minha carteira <span id="portfolio-count" class="count">0</span></button
+        ><button class="nav hidden" id="admin-nav">Equipe</button>
+      </nav>
+      <div class="top-right">
+        <span class="pilot-label">Piloto · dados reais</span
+        ><button class="avatar" id="profile-button" aria-label="Meu perfil">P</button>
+        <form th:action="@{/logout}" method="post">
+          <button class="logout" aria-label="Sair">Sair ↗</button>
+        </form>
+      </div>
+    </header>
+    <main class="workspace" id="workspace">
+      <aside class="filters" id="filters">
+        <div class="filter-heading">
+          <span class="eyebrow">PROSPECÇÃO</span>
+          <h1>Encontre seu<br />próximo cliente.</h1>
+          <p class="muted">
+            Escolha uma região e um ramo.<br />A busca encontra empresas para você.
+          </p>
+        </div>
+        <form id="search-form">
+          <label>Região<select id="region" required></select></label
+          ><label>Ramo de atividade<select id="category" required></select></label
+          ><label
+            >Raio de busca<select id="radius">
+              <option value="1">Até 1 km</option>
+              <option value="3" selected>Até 3 km</option>
+              <option value="5">Até 5 km</option>
+              <option value="10">Até 10 km</option>
+            </select></label
+          ><button type="button" class="text-button hidden" id="profile-suggestion">
+            ✧ Sugestão para meu perfil</button
+          ><button class="btn primary wide" id="search-button" type="submit" disabled>
+            <span>Buscar empresas</span><span>↗</span>
+          </button>
+          <p class="small muted">Mova o marcador no mapa para ajustar o centro da busca.</p>
+        </form>
+        <hr />
+        <label class="check"
+          ><input id="with-contact" type="checkbox" /><span>Com telefone publicado</span></label
+        ><label class="check"
+          ><input id="available-only" type="checkbox" /><span>Somente disponíveis</span></label
+        >
+        <div class="source-note" id="source-note">
+          <span class="source-dot"></span>
+          <div>
+            <strong>Verificando a fonte</strong>
+            <p>Carregando catálogo de empresas…</p>
+          </div>
+        </div>
+        <div class="filter-foot">
+          <span>Prioridade de abordagem</span>
+          <div class="legend">
+            <span><i class="dot high"></i>Alta</span><span><i class="dot medium"></i>Média</span
+            ><span><i class="dot low"></i>Baixa</span>
+          </div>
+          <p>Regras e evidências, sem previsão de compra.</p>
+        </div>
+      </aside>
+      <section class="explore-area">
+        <div class="results-toolbar">
+          <div>
+            <h2 id="view-title">Explorar empresas</h2>
+            <p id="results-summary" class="muted" aria-live="polite">
+              Sua próxima oportunidade pode estar perto.
+            </p>
+          </div>
+          <div class="view-toggle" role="group" aria-label="Visualização">
+            <button id="map-view" class="selected">Mapa</button
+            ><button id="list-view">Lista</button>
+          </div>
+          <button class="btn compact mobile-filter" id="toggle-filters">Filtros</button>
+        </div>
+        <div class="view-content">
+          <div id="map" aria-label="Mapa de oportunidades"></div>
+          <div id="empty-overlay" class="empty-overlay">
+            <span class="empty-icon">◎</span>
+            <h2>Uma região. Várias possibilidades.</h2>
+            <p>Use os filtros para buscar empresas reais<br />e descobrir por onde começar.</p>
+          </div>
+          <section id="list" class="leads-list hidden" aria-label="Empresas encontradas"></section>
+          <div class="map-caption" id="map-caption">Fonte: OpenStreetMap · cobertura variável</div>
+        </div>
+      </section>
+      <aside class="detail hidden" id="detail" aria-label="Detalhes da oportunidade"></aside>
+    </main>
+    <section id="team-view" class="team-view hidden">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">GESTÃO</span>
+          <h1>Sua equipe</h1>
+          <p class="muted">Acessos individuais para uma carteira compartilhada.</p>
+        </div>
+      </div>
+      <div id="team-list"></div>
+    </section>
+    <dialog id="profile-dialog">
+      <form id="profile-form">
+        <div class="dialog-heading">
+          <h2>Seu perfil</h2>
+          <button type="button" class="icon-btn close-dialog" aria-label="Fechar">×</button>
+        </div>
+        <label>Como você quer aparecer<input id="profile-name" maxlength="120" required /></label
+        ><label
+          >Sua experiência profissional<input
+            id="profile-specialty"
+            maxlength="200"
+            placeholder="Ex.: advocacia, confeitaria, anúncios"
+        /></label>
+        <p class="small muted">O perfil sugere ramos. Você pode explorar qualquer um.</p>
+        <button class="btn primary wide">Salvar perfil</button>
+      </form>
+      <hr />
+      <form id="password-form">
+        <h3>Alterar senha</h3>
+        <label
+          >Senha atual<input
+            id="current-password"
+            type="password"
+            autocomplete="current-password"
+            required /></label
+        ><label
+          >Nova senha<input
+            id="new-password"
+            type="password"
+            minlength="12"
+            maxlength="72"
+            autocomplete="new-password"
+            required /></label
+        ><button class="btn wide">Atualizar senha</button>
+      </form>
+    </dialog>
+    <div id="toast" role="status" class="toast hidden"></div>
+    <div id="busy" class="busy hidden" role="status">
+      <span class="spinner"></span><span id="busy-text">Buscando empresas…</span>
+    </div>
+  </body>
+</html>

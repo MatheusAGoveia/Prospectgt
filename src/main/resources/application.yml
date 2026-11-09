@@ -1,0 +1,39 @@
+server:
+  address: ${SERVER_ADDRESS:127.0.0.1}
+  port: ${PORT:8080}
+  servlet:
+    session:
+      timeout: 8h
+      cookie:
+        http-only: true
+        same-site: lax
+        secure: ${COOKIE_SECURE:false}
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:h2:file:./data/prospectgt;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH}
+    username: ${DB_USER:sa}
+    password: ${DB_PASSWORD:}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+  jackson:
+    default-property-inclusion: non_null
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
+  thymeleaf:
+    cache: false
+logging:
+  level:
+    org.hibernate.orm.jdbc.warn: ERROR
+prospectgt:
+  bootstrap-password: ${BOOTSTRAP_PASSWORD:}
+  overpass-url: ${OVERPASS_URL:https://overpass.private.coffee/api/interpreter}
+  catalog-path: ${CATALOG_PATH:./data/catalogo-osm.jsonl}
+  catalog-region: ${CATALOG_REGION:Centro-Oeste}
+  catalog-auto-prepare: ${CATALOG_AUTO_PREPARE:false}
+  catalog-download-url: ${CATALOG_DOWNLOAD_URL:https://download.geofabrik.de/south-america/brazil/centro-oeste-latest.osm.pbf}

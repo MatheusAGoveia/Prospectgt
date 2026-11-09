@@ -1,0 +1,12 @@
+{
+  "name": "prospectgt-browser-checks",
+  "private": true,
+  "scripts": {
+    "test:e2e": "node scripts/browser-check.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.65.0",
+    "prettier": "3.9.10",
+    "prettier-plugin-java": "2.11.0"
+  }
+}

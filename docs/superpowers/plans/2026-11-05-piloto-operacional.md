@@ -182,3 +182,13 @@ Autorrevisão: o plano cobre apenas o recorte declarado, incluindo descoberta au
 - A instância `https://overpass-api.de/api/interpreter` devolveu HTTP 502. A consulta posterior em `https://overpass.private.coffee/api/interpreter` excedeu o tempo de espera local de 30 segundos. Não foi possível medir cobertura ou qualidade de contatos. Essas falhas não demonstram que não existem empresas na região e não validam a fonte para a liberação do piloto.
 - [O operador Private.coffee](https://overpass.private.coffee/) documenta acesso para projetos comerciais, com uso responsável e sem garantia de disponibilidade. A documentação por si só não substitui um teste bem-sucedido da fonte.
 - Java/Maven não foram encontrados no PATH. Docker está instalado, mas o daemon Linux não respondeu porque o pipe não existe. O ambiente de compilação/execução precisa ser preparado; nenhum servidor foi iniciado e nenhum teste de produto foi executado nesta etapa.
+
+## Entrega do MVP — 09/11/2026
+
+Implementação autorizada pelo pedido “continue e me traga um mvp”. O piloto local foi construído com descoberta automática, mapa/lista, análise básica, mensagem por ramo e evidência, reserva, feedback, histórico, perfis e seis acessos individuais. O catálogo regional OSM/Geofabrik substitui a dependência exclusiva do Overpass, mantendo entrada automática desde o início. Não há cadastros fictícios de empresas.
+
+Ajustes de implementação: Leaflet no mapa 2D; H2 persistente no modo local para iniciar sem daemon Docker; PostgreSQL com receita Compose separada e migrações Flyway. O fluxo de reserva/autorização/cache também foi testado em PostgreSQL real temporário, além do H2. Java/Maven portáteis e comando de preparação estão em `scripts`.
+
+Verificação: 42 testes automatizados, navegação real em computador/celular/tablet, disputa de oportunidade entre dois vendedores, cópia efetiva do texto editado, feedback, troca de tela durante busca, reinício e restauração de cópia do banco. Evidências e capturas em `../../evidencias`; instruções operacionais em `../../../README.md`. A revisão independente cobriu autorização, estados terminais, URLs externas, cache, contatos e preservação de rascunhos; os achados foram corrigidos e verificados.
+
+Recorte desta entrega: catálogo preparado do Centro-Oeste; demais regiões dependem do conector online. Hospedagem compartilhada, cobertura nacional preparada, CSV/cadastro manual, convites/gestão completa de contas e modos inclinados/rua permanecem fora deste MVP. O Compose teve configuração validada, mas seus contêineres não foram executados aqui. Os checkboxes originais representam o plano mais amplo; esta seção registra o que a entrega efetivamente contém.

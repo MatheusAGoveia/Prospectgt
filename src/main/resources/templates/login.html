@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Entrar · Prospectgt</title>
+    <link rel="stylesheet" href="/assets/app.css" />
+  </head>
+  <body class="login-page">
+    <main class="login-card">
+      <a class="brand" href="/"
+        ><span class="brand-mark">P</span><span>Prospectgt<small>por WeztTech</small></span></a
+      >
+      <p class="eyebrow">SEU PRÓXIMO CLIENTE COMEÇA AQUI</p>
+      <h1>Boas oportunidades.<br />Conversas melhores.</h1>
+      <p class="muted">
+        Entre para explorar empresas, preparar abordagens e cuidar da sua carteira.
+      </p>
+      <p class="form-error" th:if="${param.error}">Usuário ou senha incorretos.</p>
+      <p class="form-success" th:if="${param.logout}">Você saiu da sua conta.</p>
+      <form th:action="@{/login}" method="post">
+        <label
+          >Usuário<input
+            name="username"
+            autocomplete="username"
+            required
+            autofocus
+            placeholder="Seu usuário" /></label
+        ><label
+          >Senha<input
+            type="password"
+            name="password"
+            autocomplete="current-password"
+            required
+            placeholder="Sua senha" /></label
+        ><button class="btn primary wide">Entrar na minha conta <span>↗</span></button>
+      </form>
+      <p class="login-note">
+        Acesso exclusivo da equipe WeztTech.<br />No primeiro uso, consulte o arquivo local
+        <code>data/acessos-iniciais.txt</code>.
+      </p>
+    </main>
+    <div class="login-art" aria-hidden="true">
+      <div class="art-grid"></div>
+      <span class="art-dot d1"></span><span class="art-dot d2"></span
+      ><span class="art-dot d3"></span>
+      <div class="art-card">
+        <span class="pill green">Uma nova oportunidade</span>
+        <h2>Conexões que<br />viram projetos.</h2>
+        <p>Pesquise. Entenda. Converse.</p>
+      </div>
+    </div>
+  </body>
+</html>

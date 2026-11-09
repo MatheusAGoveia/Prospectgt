@@ -1,0 +1,11 @@
+{
+  "checkedAt": "20261109T124544Z",
+  "result": "BACKUP_OK",
+  "method": "Cópia do arquivo H2 com aplicação parada, reaberta em banco independente",
+  "verified": [
+    "49 ou mais registros de empresa",
+    "6 contas",
+    "feedback do teste de navegador preservado"
+  ],
+  "outboundMessages": 0
+}

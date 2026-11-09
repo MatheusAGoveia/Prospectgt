@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Los Baristas",
+    "url": "https://www.losbaristas.com/",
+    "state": "COMPLETED",
+    "details": {
+      "url": "https://www.losbaristas.com/",
+      "httpStatus": 200,
+      "scope": "Leitura de HTML público; sem avaliação estética ou teste de navegação.",
+      "title": "Los Baristas . Casa de cafés especiais em Brasília",
+      "textLength": 2699,
+      "contactFound": true,
+      "viewportDeclared": true,
+      "whatsappPublished": true
+    },
+    "checkedAt": "2026-11-09T12:53:59.932170Z"
+  },
+  {
+    "name": "Daniel Briand",
+    "url": "https://www.cafedanielbriand.com/",
+    "state": "COMPLETED",
+    "details": {
+      "url": "https://www.cafedanielbriand.com/",
+      "httpStatus": 200,
+      "scope": "Leitura de HTML público; sem avaliação estética ou teste de navegação.",
+      "title": "cafedanielbriand",
+      "textLength": 257,
+      "contactFound": false,
+      "viewportDeclared": true,
+      "whatsappPublished": false
+    },
+    "checkedAt": "2026-11-09T12:53:58.718292Z"
+  }
+]

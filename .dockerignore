@@ -1,0 +1,9 @@
+.git
+.tools
+target
+data
+data-postgres
+node_modules
+docs
+.env
+*.log

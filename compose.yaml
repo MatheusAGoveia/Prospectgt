@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: prospectgt
+      POSTGRES_USER: prospectgt
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prospectgt -d prospectgt"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/prospectgt
+      DB_USER: prospectgt
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no .env}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+    volumes:
+      - ./data-postgres:/app/data
+      - type: bind
+        source: ./data/catalogo-osm.jsonl
+        target: /app/data/catalogo-osm.jsonl
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/catalogo-osm.jsonl.meta.json
+        target: /app/data/catalogo-osm.jsonl.meta.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./data/catalogo-osm.jsonl.coverage.poly
+        target: /app/data/catalogo-osm.jsonl.coverage.poly
+        read_only: true
+        bind:
+          create_host_path: false
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  postgres-data:
