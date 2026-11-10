@@ -17,6 +17,75 @@ import org.junit.jupiter.api.io.TempDir;
 class RegrasTest {
 
   @Test
+  void trocaDeSnapshotAtualizaDadosECoberturaSemExigirArquivoLegado(@TempDir Path dir)
+    throws Exception {
+    var mapper = new ObjectMapper().findAndRegisterModules();
+    var configured = dir.resolve("catalog.jsonl");
+    var first = dir.resolve("catalogos/snapshots/first/catalog.jsonl");
+    var second = dir.resolve("catalogos/snapshots/second/catalog.jsonl");
+    for (var entry : List.of(first, second)) {
+      Files.createDirectories(entry.getParent());
+      var place = new Lugar(
+        "osm:node:1",
+        entry.getParent().getFileName().toString(),
+        "cafes",
+        null,
+        null,
+        -19.9668,
+        -44.2008,
+        null,
+        null,
+        null,
+        "https://www.openstreetmap.org/node/1",
+        "fixture",
+        null
+      );
+      Files.writeString(entry, mapper.writeValueAsString(place) + "\n");
+      Files.writeString(
+        entry.resolveSibling("catalog.jsonl.coverage.poly"),
+        "Test\n1\n-45 -21\n-43 -21\n-43 -19\n-45 -19\nEND\nEND\n"
+      );
+      Files.writeString(entry.resolveSibling("catalog.jsonl.meta.json"), "{\"records\":1}");
+    }
+    var pointer = dir.resolve("catalog.jsonl.snapshot.json");
+    Files.writeString(pointer, "{\"path\":\"catalogos/snapshots/first/catalog.jsonl\"}");
+    var catalog = new CatalogoService(configured.toString(), mapper);
+    assertThat(catalog.cobre(-19.9668, -44.2008)).isTrue();
+    assertThat(catalog.consultar(-19.9668, -44.2008, 1, "cafes").getFirst().name()).isEqualTo(
+      "first"
+    );
+    String version = catalog.versao();
+    Files.writeString(pointer, "{\"path\":\"catalogos/snapshots/second/catalog.jsonl\"}");
+    assertThat(catalog.consultar(-19.9668, -44.2008, 1, "cafes").getFirst().name()).isEqualTo(
+      "second"
+    );
+    assertThat(catalog.versao()).isNotEqualTo(version);
+  }
+
+  @Test
+  void cloudRecusaConexaoSemTlsVerificadoOuCredencialNaUrl() {
+    String secure =
+      "jdbc:postgresql://example.com/database?sslmode=verify-full&sslfactory=org.postgresql.ssl.DefaultJavaSSLFactory";
+    br.com.wezttech.prospectgt.operacao.ConexaoSegura.validarJdbc(secure);
+    assertThat(org.postgresql.Driver.parseURL(secure, null).getProperty("sslmode"))
+      .isEqualTo("verify-full");
+    for (String unsafe : List.of(
+      "jdbc:h2:mem:cloud",
+      secure.replace("verify-full", "disable"),
+      secure.replace("verify-full", "require"),
+      secure + "&sslmode=disable",
+      secure + "&password=secret",
+      secure + "#x&sslmode=disable",
+      secure.replace("sslmode", "%73slmode"),
+      secure.replace("sslfactory", "%73slfactory"),
+      secure.replace("DefaultJavaSSLFactory", "NonValidatingFactory")
+    ))
+      assertThatThrownBy(() ->
+        br.com.wezttech.prospectgt.operacao.ConexaoSegura.validarJdbc(unsafe)
+      ).isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
   void mensagemPersonalizaRamoSemAfirmarQueSiteNaoExiste() {
     var e = new br.com.wezttech.prospectgt.empresas.Empresa();
     e.name = "Padaria de teste";
@@ -155,5 +224,22 @@ class RegrasTest {
     assertThat(catalog.cobre(-23.56, -46.69)).isFalse();
     assertThat(catalog.consultar(-15.7939, -47.8828, 1, "cafes")).hasSize(1);
     assertThat(catalog.consultar(-15.7939, -47.8828, 1, "padarias")).isEmpty();
+  }
+
+  @Test
+  void coberturaCombinadaMantemMinasECentroOesteSemInventarCoberturaNoMeio(@TempDir Path dir)
+    throws Exception {
+    var file = dir.resolve("catalog.jsonl");
+    Files.writeString(file, "");
+    Files.writeString(
+      dir.resolve("catalog.jsonl.coverage.poly"),
+      "Test\n1\n-48 -16\n-47 -16\n-47 -15\n-48 -15\nEND\n2\n-45 -21\n-43 -21\n-43 -19\n-45 -19\nEND\nEND\n"
+    );
+    var catalog = new CatalogoService(file.toString(), new ObjectMapper());
+    assertThat(catalog.cobre(-15.7939, -47.8828)).isTrue();
+    assertThat(catalog.cobre(-19.9668, -44.2008)).isTrue();
+    assertThat(catalog.cobre(-19.9321, -44.0539)).isTrue();
+    assertThat(catalog.cobre(-19.9102, -43.9266)).isTrue();
+    assertThat(catalog.cobre(-18, -46)).isFalse();
   }
 }

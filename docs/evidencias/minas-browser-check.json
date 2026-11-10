@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-11-10T13:07:43.778Z",
+  "source": "Catálogo OpenStreetMap/Geofabrik Centro-Oeste + Sudeste real",
+  "region": "Betim, MG",
+  "category": "restaurantes",
+  "resultCount": 18,
+  "analysisState": "INCONCLUSIVE",
+  "checkedLeadId": "66613924-ba89-4863-9ee7-e4805e61536e",
+  "messageSent": false,
+  "checks": [
+    "Login individual e configuração carregada",
+    "Busca automática encontra registros OSM reais e pontos no mapa",
+    "Ficha, origem, análise básica e mensagem com nome da empresa",
+    "Cópia real, reserva persistida e evento sem alegar envio",
+    "Segundo vendedor impedido de assumir a mesma oportunidade",
+    "Feedback e carteira preservados após recarregar",
+    "Busca lenta não sobrescreve a carteira ao trocar de tela",
+    "Layout de computador, tablet e celular sem rolagem horizontal",
+    "Gestor consulta equipe e libera o teste preservando histórico"
+  ],
+  "browserErrors": []
+}

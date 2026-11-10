@@ -1,0 +1,46 @@
+{
+  "coordinateSource": "https://github.com/kelvins/municipios-brasileiros",
+  "regions": [
+    {
+      "id": "centro-oeste",
+      "name": "Centro-Oeste",
+      "page": "https://download.geofabrik.de/south-america/brazil/centro-oeste.html",
+      "pbf": "https://download.geofabrik.de/south-america/brazil/centro-oeste-latest.osm.pbf",
+      "polygon": "https://download.geofabrik.de/south-america/brazil/centro-oeste.poly"
+    },
+    {
+      "id": "sudeste",
+      "name": "Sudeste",
+      "page": "https://download.geofabrik.de/south-america/brazil/sudeste.html",
+      "pbf": "https://download.geofabrik.de/south-america/brazil/sudeste-latest.osm.pbf",
+      "polygon": "https://download.geofabrik.de/south-america/brazil/sudeste.poly"
+    }
+  ],
+  "cities": [
+    { "label": "Betim, MG", "lat": -19.9668, "lon": -44.2008 },
+    { "label": "Contagem, MG", "lat": -19.9321, "lon": -44.0539 },
+    { "label": "Belo Horizonte, MG", "lat": -19.9102, "lon": -43.9266 },
+    { "label": "Nova Lima, MG", "lat": -19.9758, "lon": -43.8509 },
+    { "label": "Ibirité, MG", "lat": -20.0252, "lon": -44.0569 },
+    { "label": "Ribeirão das Neves, MG", "lat": -19.7621, "lon": -44.0844 },
+    { "label": "Santa Luzia, MG", "lat": -19.7548, "lon": -43.8497 },
+    { "label": "Sabará, MG", "lat": -19.884, "lon": -43.8263 },
+    { "label": "Sete Lagoas, MG", "lat": -19.4569, "lon": -44.2413 },
+    { "label": "Divinópolis, MG", "lat": -20.1446, "lon": -44.8912 },
+    { "label": "Uberlândia, MG", "lat": -18.9141, "lon": -48.2749 },
+    { "label": "Juiz de Fora, MG", "lat": -21.7595, "lon": -43.3398 },
+    { "label": "São Paulo, SP", "lat": -23.5617, "lon": -46.6944 },
+    { "label": "Campinas, SP", "lat": -22.9053, "lon": -47.0659 },
+    { "label": "Rio de Janeiro, RJ", "lat": -22.9068, "lon": -43.1729 },
+    { "label": "Vitória, ES", "lat": -20.3155, "lon": -40.3128 },
+    { "label": "Brasília, DF", "lat": -15.7939, "lon": -47.8828 },
+    { "label": "Águas Claras, DF", "lat": -15.836, "lon": -48.025 },
+    { "label": "Taguatinga, DF", "lat": -15.831, "lon": -48.056 },
+    { "label": "Goiânia, GO", "lat": -16.6799, "lon": -49.255 },
+    { "label": "Anápolis, GO", "lat": -16.328, "lon": -48.953 },
+    { "label": "Campo Grande, MS", "lat": -20.4697, "lon": -54.6201 },
+    { "label": "Dourados, MS", "lat": -22.221, "lon": -54.805 },
+    { "label": "Cuiabá, MT", "lat": -15.601, "lon": -56.097 },
+    { "label": "Rondonópolis, MT", "lat": -16.471, "lon": -54.637 }
+  ]
+}

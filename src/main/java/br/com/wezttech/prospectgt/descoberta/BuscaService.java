@@ -47,7 +47,7 @@ public class BuscaService {
     ) throw ApiException.bad("Escolha uma região no Brasil, um ramo e um raio entre 0,5 e 10 km.");
     String cache = String.format(
       Locale.ROOT,
-      "search:%.4f:%.4f:%.1f:%s",
+      "search:" + catalog.versao() + ":%.4f:%.4f:%.1f:%s",
       e.lat,
       e.lon,
       e.radius,

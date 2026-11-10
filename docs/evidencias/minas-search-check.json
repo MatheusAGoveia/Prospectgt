@@ -1,0 +1,32 @@
+{
+  "checkedAt": "2026-11-10T12:51:16.022Z",
+  "results": [
+    {
+      "region": "Betim, MG",
+      "category": "lojas",
+      "radiusKm": 3,
+      "displayed": 49,
+      "source": "Catálogo regional OSM/Geofabrik",
+      "screenshot": "minas-betim.png"
+    },
+    {
+      "region": "Contagem, MG",
+      "category": "lojas",
+      "radiusKm": 3,
+      "displayed": 19,
+      "source": "Catálogo regional OSM/Geofabrik",
+      "screenshot": "minas-contagem.png"
+    },
+    {
+      "region": "Belo Horizonte, MG",
+      "category": "lojas",
+      "radiusKm": 3,
+      "displayed": 150,
+      "source": "Catálogo regional OSM/Geofabrik",
+      "screenshot": "minas-bh.png"
+    }
+  ],
+  "messagesSent": 0,
+  "reservationsChanged": 0,
+  "browserErrors": []
+}

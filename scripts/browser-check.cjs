@@ -7,6 +7,9 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tools", "browsers");
 const { chromium } = require("playwright");
 const base = process.env.PROSPECTGT_URL || "http://127.0.0.1:8080";
 const output = path.join(root, "docs", "evidencias");
+const targetRegion = process.env.PROSPECTGT_REGION || "Brasília, DF";
+const targetCategory = process.env.PROSPECTGT_CATEGORY || "lojas";
+const prefix = process.env.PROSPECTGT_EVIDENCE_PREFIX || "";
 const credentials = Object.fromEntries(
   fs
     .readFileSync(path.join(root, "data", "acessos-iniciais.txt"), "utf8")
@@ -16,6 +19,12 @@ const credentials = Object.fromEntries(
 );
 const failures = [],
   checks = [];
+function redact(value) {
+  let text = String(value);
+  for (const password of Object.values(credentials))
+    text = text.split(password).join("[senha ocultada]");
+  return text;
+}
 let testedLead,
   held = false,
   browser,
@@ -31,6 +40,7 @@ async function login(context, username) {
   });
   await page.goto(base);
   await page.locator("[name=username]").fill(username);
+  await page.locator("[name=password]").waitFor({ state: "visible" });
   await page.locator("[name=password]").fill(credentials[username]);
   await Promise.all([
     page.waitForURL(base + "/"),
@@ -81,13 +91,24 @@ async function main() {
   const page = await login(context, "vendedor1");
   diagnosticPage = page;
   checks.push("Login individual e configuração carregada");
+  const selectedRegion = await page
+    .locator("#region option")
+    .evaluateAll(
+      (options, label) => options.find((option) => option.textContent === label).value,
+      targetRegion,
+    );
+  await page.locator("#region").selectOption(selectedRegion);
+  await page.locator("#category").selectOption(targetCategory);
   await page.locator("#search-button").click();
   await page.waitForFunction(
     () => document.querySelectorAll(".lead-row").length > 0,
     {},
     { timeout: 90000 },
   );
-  const list = (await request(page, "/leads")).data;
+  const selectedIds = await page
+    .locator(".lead-row")
+    .evaluateAll((rows) => rows.map((row) => row.dataset.id));
+  const list = (await request(page, "/leads?ids=" + selectedIds.join(","))).data;
   assert.ok(
     list.length > 0 && list.every((x) => x.sourceUrl.startsWith("https://www.openstreetmap.org/")),
   );
@@ -135,6 +156,8 @@ async function main() {
   );
   await page.reload();
   await page.waitForFunction(() => document.querySelector("#category").options.length === 10);
+  await page.locator("#region").selectOption(selectedRegion);
+  await page.locator("#category").selectOption(targetCategory);
   await page.locator("#portfolio-nav").click();
   await page.locator('[data-id="' + testedLead + '"]').click();
   await page.waitForFunction(() =>
@@ -170,14 +193,14 @@ async function main() {
   await page.locator("#map-view").click();
   await page.waitForTimeout(2000);
   await page.locator("#toast").waitFor({ state: "hidden", timeout: 12000 });
-  await page.screenshot({ path: path.join(output, "mvp-desktop.png") });
+  await page.screenshot({ path: path.join(output, prefix + "mvp-desktop.png") });
   await page.setViewportSize({ width: 375, height: 812 });
   await page.waitForTimeout(300);
   assert.ok(
     await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
     "Layout móvel ultrapassou a largura da tela.",
   );
-  await page.screenshot({ path: path.join(output, "mvp-celular.png") });
+  await page.screenshot({ path: path.join(output, prefix + "mvp-celular.png") });
   await page.locator("#close-detail").click();
   await page.locator("#toggle-filters").click();
   assert.ok(await page.locator("#search-button").isVisible());
@@ -206,7 +229,9 @@ async function main() {
   assert.deepEqual(failures, [], "Erros de JavaScript ou CSP");
   const evidence = {
     checkedAt: new Date().toISOString(),
-    source: "Catálogo OpenStreetMap/Geofabrik Centro-Oeste real",
+    source: "Catálogo OpenStreetMap/Geofabrik Centro-Oeste + Sudeste real",
+    region: targetRegion,
+    category: targetCategory,
     resultCount: list.length,
     analysisState: analysisResult.state,
     checkedLeadId: testedLead,
@@ -214,12 +239,15 @@ async function main() {
     checks,
     browserErrors: failures,
   };
-  fs.writeFileSync(path.join(output, "browser-check.json"), JSON.stringify(evidence, null, 2));
+  fs.writeFileSync(
+    path.join(output, prefix + "browser-check.json"),
+    JSON.stringify(evidence, null, 2),
+  );
   console.log(JSON.stringify(evidence, null, 2));
 }
 main()
   .catch(async (e) => {
-    console.error(e.message);
+    console.error(redact(e.message));
     console.error("Etapas concluídas:", checks.join("; "));
     if (diagnosticPage) {
       console.error(await diagnosticPage.locator("#results-summary").textContent());

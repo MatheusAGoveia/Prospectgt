@@ -1,0 +1,21 @@
+# Neste perfil não existe fallback para banco H2 no disco efêmero da hospedagem.
+server:
+  address: 0.0.0.0
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      cookie:
+        secure: true
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 0
+      connection-timeout: 30000
+      idle-timeout: 120000
+prospectgt:
+  bootstrap-enabled: false

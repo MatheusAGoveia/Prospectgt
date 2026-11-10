@@ -34,6 +34,16 @@ import org.springframework.test.web.servlet.MockMvc;
 class FluxoIntegrationTest {
 
   @Test
+  void configuracaoPriorizaMinasGerais() throws Exception {
+    mvc
+      .perform(get("/api/config").with(user(a.username)))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.regions[0].label").value("Betim, MG"))
+      .andExpect(jsonPath("$.regions[1].label").value("Contagem, MG"))
+      .andExpect(jsonPath("$.regions[2].label").value("Belo Horizonte, MG"));
+  }
+
+  @Test
   void encerramentoNaoPodeSerDesfeitoPeloFeedback() {
     reservas.assumir(lead.id, a);
     reservas.registrar(lead.id, a, "DO_NOT_CONTACT", "Pedido para não contatar", null);

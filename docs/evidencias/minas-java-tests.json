@@ -1,0 +1,36 @@
+{
+  "checkedAt": "2026-11-10T13:09:57.668407+00:00",
+  "command": "python scripts/maven.py -q package; python scripts/maven.py -q -Dtest=RegrasTest test",
+  "suites": [
+    {
+      "suite": "br.com.wezttech.prospectgt.FluxoIntegrationTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.wezttech.prospectgt.FonteERedeTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.wezttech.prospectgt.PostgresIntegrationTest",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.wezttech.prospectgt.RegrasTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "total": 48,
+  "passed": true
+}

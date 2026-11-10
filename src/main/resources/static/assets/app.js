@@ -22,19 +22,7 @@ const actions = {
   RESERVATION_EXPIRED: "Reserva expirada",
   ADMIN_RELEASED: "Reabertura pela gestão",
 };
-const regions = [
-  ["Brasília, DF", -15.7939, -47.8828],
-  ["Águas Claras, DF", -15.836, -48.025],
-  ["Taguatinga, DF", -15.831, -48.056],
-  ["Goiânia, GO", -16.6799, -49.255],
-  ["Anápolis, GO", -16.328, -48.953],
-  ["Campo Grande, MS", -20.4697, -54.6201],
-  ["Dourados, MS", -22.221, -54.805],
-  ["Cuiabá, MT", -15.601, -56.097],
-  ["Rondonópolis, MT", -16.471, -54.637],
-  ["São Paulo, SP · fonte online", -23.5617, -46.6944],
-  ["Rio de Janeiro, RJ · fonte online", -22.9068, -43.1729],
-];
+let regions = [];
 let me,
   config,
   leads = [],
@@ -43,7 +31,7 @@ let me,
   map,
   markers = [],
   centerMarker,
-  currentRegion = regions[0],
+  currentRegion,
   view = "map",
   polling = false;
 let toastTimer;
@@ -581,6 +569,8 @@ async function team() {
 async function init() {
   try {
     [me, config] = await Promise.all([api("/me"), api("/config")]);
+    regions = config.regions.map((city) => [city.label, city.lat, city.lon]);
+    currentRegion = regions[0];
     $("#avatar")?.remove();
     $("#profile-button").textContent = me.name[0].toUpperCase();
     $("#region").innerHTML = regions
@@ -589,7 +579,7 @@ async function init() {
     $("#category").innerHTML = Object.entries(config.categories)
       .map(([k, v]) => '<option value="' + k + '">' + esc(v) + "</option>")
       .join("");
-    $("#category").value = "cafes";
+    $("#category").value = "lojas";
     if (me.role === "ADMIN") $("#admin-nav").classList.remove("hidden");
     if (config.catalog.ready) {
       $("#source-note").innerHTML =
@@ -679,6 +669,9 @@ async function init() {
       }
     };
     $("#search-button").disabled = false;
+    ["#region", "#category", "#radius"].forEach((selector) => {
+      $(selector).disabled = false;
+    });
   } catch (e) {
     toast(e.message, true);
   }

@@ -46,6 +46,20 @@ public final class PbfCatalogImporter {
 
   public static Map<String, Object> importar(Path input, Path output, String region)
     throws IOException {
+    return importar(
+      input,
+      output,
+      region,
+      "https://download.geofabrik.de/south-america/brazil.html"
+    );
+  }
+
+  public static Map<String, Object> importar(
+    Path input,
+    Path output,
+    String region,
+    String sourceUrl
+  ) throws IOException {
     var places = new ArrayList<Lugar>();
     var ways = new ArrayList<WayData>();
     var wanted = new HashSet<Long>();
@@ -137,7 +151,7 @@ public final class PbfCatalogImporter {
     meta.put("withContact", phones);
     meta.put("categories", counts);
     meta.put("license", "ODbL 1.0 — © OpenStreetMap contributors");
-    meta.put("source", "https://download.geofabrik.de/south-america/brazil/centro-oeste.html");
+    meta.put("source", sourceUrl);
     mapper
       .writerWithDefaultPrettyPrinter()
       .writeValue(output.resolveSibling(output.getFileName() + ".meta.json").toFile(), meta);
@@ -149,6 +163,11 @@ public final class PbfCatalogImporter {
     if (args.length < 2) throw new IllegalArgumentException(
       "Uso: arquivo.osm.pbf catalogo.jsonl [região]"
     );
-    importar(Path.of(args[0]), Path.of(args[1]), args.length > 2 ? args[2] : "Centro-Oeste");
+    importar(
+      Path.of(args[0]),
+      Path.of(args[1]),
+      args.length > 2 ? args[2] : "Brasil",
+      args.length > 3 ? args[3] : "https://download.geofabrik.de/south-america/brazil.html"
+    );
   }
 }

@@ -24,24 +24,6 @@ services:
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
     volumes:
       - ./data-postgres:/app/data
-      - type: bind
-        source: ./data/catalogo-osm.jsonl
-        target: /app/data/catalogo-osm.jsonl
-        read_only: true
-        bind:
-          create_host_path: false
-      - type: bind
-        source: ./data/catalogo-osm.jsonl.meta.json
-        target: /app/data/catalogo-osm.jsonl.meta.json
-        read_only: true
-        bind:
-          create_host_path: false
-      - type: bind
-        source: ./data/catalogo-osm.jsonl.coverage.poly
-        target: /app/data/catalogo-osm.jsonl.coverage.poly
-        read_only: true
-        bind:
-          create_host_path: false
     depends_on:
       db:
         condition: service_healthy

@@ -12,6 +12,74 @@ import org.springframework.test.context.DynamicPropertySource;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class PostgresIntegrationTest extends FluxoIntegrationTest {
 
+  @Test
+  void migracaoEntreH2EPostgresPreservaCarteiraESenhasSemSobrescreverDestino() throws Exception {
+    reservas.assumir(lead.id, a);
+    reservas.registrar(
+      lead.id,
+      a,
+      "FOLLOW_UP",
+      "Feedback a preservar",
+      java.time.LocalDate.now().plusDays(2)
+    );
+    jobs.criar("ANALYZE", a.id, lead.id, "migration-fixture", "{}");
+    String h2 =
+      "jdbc:h2:mem:transfer" +
+      java.util.UUID.randomUUID() +
+      ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1";
+    org.flywaydb.core.Flyway.configure().dataSource(h2, "sa", "").load().migrate();
+    String schema = "transfer_" + java.util.UUID.randomUUID().toString().replace("-", "");
+    org.flywaydb.core.Flyway.configure()
+      .dataSource(PG.getPostgresDatabase())
+      .schemas(schema)
+      .defaultSchema(schema)
+      .load()
+      .migrate();
+    try (
+      var origin = PG.getPostgresDatabase().getConnection();
+      var copy = java.sql.DriverManager.getConnection(h2, "sa", "");
+      var destination = PG.getPostgresDatabase().getConnection()
+    ) {
+      br.com.wezttech.prospectgt.operacao.MigrarBancoLocal.copiar(origin, copy);
+      destination.setSchema(schema);
+      var counts = br.com.wezttech.prospectgt.operacao.MigrarBancoLocal.copiar(copy, destination);
+      assertThat(counts.get("app_user")).isEqualTo(2L);
+      assertThat(counts.get("feedback")).isEqualTo(1L);
+      assertThat(counts.get("work_job")).isEqualTo(1L);
+      try (
+        var statement = destination.createStatement();
+        var result = statement.executeQuery("SELECT owner_id,state FROM lead")
+      ) {
+        assertThat(result.next()).isTrue();
+        assertThat(result.getObject(1)).isEqualTo(a.id);
+        assertThat(result.getString(2)).isEqualTo("FOLLOW_UP");
+      }
+      try (
+        var statement = destination.prepareStatement(
+          "SELECT password_hash FROM app_user WHERE id=?"
+        )
+      ) {
+        statement.setObject(1, a.id);
+        try (var result = statement.executeQuery()) {
+          assertThat(result.next()).isTrue();
+          assertThat(result.getString(1)).isEqualTo(a.passwordHash);
+        }
+      }
+      assertThatThrownBy(() ->
+        br.com.wezttech.prospectgt.operacao.MigrarBancoLocal.copiar(copy, destination)
+      )
+        .isInstanceOf(java.sql.SQLException.class)
+        .hasMessageContaining("contém dados");
+      try (
+        var statement = destination.createStatement();
+        var result = statement.executeQuery("SELECT COUNT(*) FROM lead")
+      ) {
+        assertThat(result.next()).isTrue();
+        assertThat(result.getLong(1)).isEqualTo(1L);
+      }
+    }
+  }
+
   private static final EmbeddedPostgres PG = start();
 
   private static EmbeddedPostgres start() {

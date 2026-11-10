@@ -34,6 +34,7 @@ public class ApiController {
   private final AnaliseService analyses;
   private final ObjectMapper mapper;
   private final CatalogoService catalog;
+  private final RegioesService regioes;
   private final PasswordEncoder encoder;
 
   public ApiController(
@@ -50,7 +51,8 @@ public class ApiController {
     AnaliseService an,
     ObjectMapper om,
     CatalogoService ca,
-    PasswordEncoder en
+    PasswordEncoder en,
+    RegioesService regions
   ) {
     atual = a;
     contas = c;
@@ -65,6 +67,7 @@ public class ApiController {
     analyses = an;
     mapper = om;
     catalog = ca;
+    regioes = regions;
     encoder = en;
   }
 
@@ -100,7 +103,9 @@ public class ApiController {
       "priceRange",
       "R$ 500 a R$ 2.000",
       "appVersion",
-      "0.1.0"
+      "0.2.0",
+      "regions",
+      regioes.cidades()
     );
   }
 
