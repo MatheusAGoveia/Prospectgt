@@ -8,6 +8,7 @@
     <title>Explorar · Prospectgt</title>
     <link rel="stylesheet" href="/assets/vendor/leaflet/leaflet.css" />
     <link rel="stylesheet" href="/assets/app.css" />
+    <script src="/assets/theme.js"></script>
     <script src="/assets/vendor/leaflet/leaflet.js" defer></script>
     <script src="/assets/app.js" defer></script>
   </head>
@@ -24,6 +25,7 @@
       </nav>
       <div class="top-right">
         <span class="pilot-label">Piloto · dados reais</span
+        ><button type="button" class="theme-toggle" data-theme-toggle>☀</button
         ><button class="avatar" id="profile-button" aria-label="Meu perfil">P</button>
         <form th:action="@{/logout}" method="post">
           <button class="logout" aria-label="Sair">Sair ↗</button>
@@ -86,6 +88,9 @@
               Sua próxima oportunidade pode estar perto.
             </p>
           </div>
+          <button class="btn compact queue-button hidden" id="queue-button" type="button">
+            Fila de abordagem <span id="queue-count" class="count">0</span>
+          </button>
           <div class="view-toggle" role="group" aria-label="Visualização">
             <button id="map-view" class="selected">Mapa</button
             ><button id="list-view">Lista</button>
@@ -150,6 +155,27 @@
             required /></label
         ><button class="btn wide">Atualizar senha</button>
       </form>
+    </dialog>
+    <dialog id="queue-dialog" class="queue-dialog" aria-labelledby="queue-title">
+      <div class="dialog-heading">
+        <div>
+          <span class="eyebrow">ENVIO ASSISTIDO</span>
+          <h2 id="queue-title">Fila de abordagem</h2>
+        </div>
+        <button type="button" class="icon-btn" id="queue-close" aria-label="Fechar">×</button>
+      </div>
+      <div class="queue-settings">
+        <label
+          >Pausa entre envios<select id="queue-interval">
+            <option value="1">1 minuto</option>
+            <option value="2">2 minutos</option>
+            <option value="3" selected>3 minutos</option>
+            <option value="5">5 minutos</option>
+          </select></label
+        >
+        <p class="small muted" id="queue-today"></p>
+      </div>
+      <div id="queue-body"></div>
     </dialog>
     <div id="toast" role="status" class="toast hidden"></div>
     <div id="busy" class="busy hidden" role="status">

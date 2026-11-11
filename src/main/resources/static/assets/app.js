@@ -86,10 +86,10 @@ function date(value) {
 }
 function priority(e) {
   return e.score >= 70
-    ? ["Alta", "green", "#ffffff"]
+    ? ["Alta", "green", "var(--high)"]
     : e.score >= 40
-      ? ["Média", "amber", "#e8b85c"]
-      : ["Baixa", "gray", "#5a5a5a"];
+      ? ["Média", "amber", "var(--medium)"]
+      : ["Baixa", "gray", "var(--low)"];
 }
 function badge(e) {
   let p = priority(e);
@@ -156,11 +156,28 @@ function render() {
     $("#results-summary").textContent =
       data.length + " oportunidades exibidas · " + leads.length + " registros na seleção";
   }
+  const pickable = data.filter(contactable);
   $("#list").innerHTML = data.length
-    ? data
+    ? (pickable.length
+        ? '<div class="list-head"><button type="button" class="text-button" id="pick-all">' +
+          (pickable.every((e) => queue.has(e.id))
+            ? "Tirar todos da fila"
+            : "Colocar todos com contato na fila (" + pickable.length + ")") +
+          "</button></div>"
+        : "") +
+      data
         .map(
           (e) =>
-            '<button class="lead-row" data-id="' +
+            '<div class="lead-item"><label class="lead-pick" title="' +
+            (contactable(e) ? "Colocar na fila de abordagem" : "Sem contato disponível para você") +
+            '"><input type="checkbox" data-pick="' +
+            e.id +
+            '"' +
+            (queue.has(e.id) ? " checked" : "") +
+            (contactable(e) ? "" : " disabled") +
+            ' aria-label="Fila: ' +
+            esc(e.name) +
+            '"></label><button class="lead-row" data-id="' +
             e.id +
             '"><span class="lead-symbol">⌖</span><span><strong>' +
             esc(e.name) +
@@ -178,13 +195,33 @@ function render() {
               : "") +
             "</span>" +
             badge(e) +
-            "</button>",
+            "</button></div>",
         )
         .join("")
     : '<div class="empty-overlay"><h2>Nenhuma oportunidade nesta seleção.</h2><p>Experimente outro ramo, amplie o raio ou ajuste os filtros.</p></div>';
   $("#list")
     .querySelectorAll("[data-id]")
     .forEach((el) => el.addEventListener("click", () => openLead(el.dataset.id)));
+  $("#list")
+    .querySelectorAll("[data-pick]")
+    .forEach((el) =>
+      el.addEventListener("change", () => {
+        const e = leads.find((x) => x.id === el.dataset.pick);
+        if (el.checked && e) queue.set(e.id, { id: e.id, name: e.name });
+        else queue.delete(el.dataset.pick);
+        updateQueueButton();
+        render();
+      }),
+    );
+  if ($("#pick-all"))
+    $("#pick-all").onclick = () => {
+      const all = pickable.every((e) => queue.has(e.id));
+      pickable.forEach((e) =>
+        all ? queue.delete(e.id) : queue.set(e.id, { id: e.id, name: e.name }),
+      );
+      updateQueueButton();
+      render();
+    };
   if (map) {
     markers.forEach((m) => m.remove());
     markers = [];
@@ -396,7 +433,13 @@ function renderDetail(e) {
     (!e.canContact ? "disabled" : "") +
     '>Copiar</button><button class="btn primary" id="open-whatsapp" ' +
     (!e.canContact || !hasNumber ? "disabled" : "") +
-    '>Abrir WhatsApp ↗</button></div><p class="small muted" style="margin-top:8px">Copiar ou abrir reserva a oportunidade. O envio acontece no WhatsApp.</p></section>' +
+    '>Abrir WhatsApp ↗</button></div><p class="small muted" style="margin-top:8px">Copiar ou abrir reserva a oportunidade. O envio acontece no WhatsApp.</p>' +
+    (contactable(e)
+      ? '<button type="button" class="text-button" id="toggle-queue" style="margin-top:12px">' +
+        (queue.has(e.id) ? "− Tirar da fila de abordagem" : "+ Colocar na fila de abordagem") +
+        "</button>"
+      : "") +
+    "</section>" +
     (canFeedback
       ? '<section class="detail-section"><div class="section-label">Como foi a conversa?</div><form id="feedback-form"><label>Situação<select id="feedback-state"><option value="IN_PROGRESS">Em atendimento / sem resposta</option><option value="FOLLOW_UP">Retorno combinado</option><option value="WON">Contrato fechado</option><option value="NOT_INTERESTED">Sem interesse</option><option value="DO_NOT_CONTACT">Não contatar</option></select></label><label>Seu feedback<textarea id="feedback-comment" required maxlength="2000" placeholder="Registre o que aconteceu…"></textarea></label><label>Próximo contato<input type="date" id="feedback-date"></label><button class="btn primary wide">Salvar feedback</button></form></section>'
       : '<section class="detail-section"><button class="btn wide" id="claim-lead" ' +
@@ -467,6 +510,16 @@ function renderDetail(e) {
   };
   $("#copy-message").onclick = () => contact(e, "COPY_MESSAGE");
   $("#open-whatsapp").onclick = () => contact(e, "OPEN_WHATSAPP");
+  if ($("#toggle-queue"))
+    $("#toggle-queue").onclick = () => {
+      if (queue.has(e.id)) queue.delete(e.id);
+      else queue.set(e.id, { id: e.id, name: e.name });
+      $("#toggle-queue").textContent = queue.has(e.id)
+        ? "− Tirar da fila de abordagem"
+        : "+ Colocar na fila de abordagem";
+      updateQueueButton();
+      render();
+    };
   if ($("#claim-lead"))
     $("#claim-lead").onclick = async () => {
       try {
@@ -538,6 +591,223 @@ async function contact(e, action) {
   } catch (error) {
     if (popup) popup.close();
     toast(error.message, true);
+  }
+}
+/* ---------- Fila de abordagem: o vendedor envia cada mensagem, uma por vez ---------- */
+const DAILY_LIMIT = 40;
+const queue = new Map();
+let run = null;
+let queueTimer;
+function contactable(e) {
+  return Boolean(e && e.canContact && (e.phone || e.whatsapp));
+}
+function store(key, value) {
+  try {
+    if (value === undefined) return localStorage.getItem(key);
+    localStorage.setItem(key, String(value));
+  } catch {
+    return null;
+  }
+}
+function sentKey() {
+  return (
+    "pgt-sent-" +
+    me.id +
+    "-" +
+    new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" })
+  );
+}
+function sentToday() {
+  return Number(store(sentKey())) || 0;
+}
+function updateQueueButton() {
+  const pending = run ? run.items.filter((i) => i.status === "pending").length : 0;
+  const total = Math.max(queue.size, pending);
+  $("#queue-button").classList.toggle("hidden", total === 0);
+  $("#queue-count").textContent = total;
+}
+function openQueue() {
+  if (!run || !run.items.some((i) => i.status === "pending")) {
+    if (!queue.size) return toast("Marque empresas na lista para montar a fila.");
+    run = {
+      items: [...queue.values()].map((i) => ({ ...i, status: "pending" })),
+      index: 0,
+      pauseUntil: 0,
+      lead: null,
+    };
+  } else {
+    queue.forEach((i) => {
+      if (!run.items.some((x) => x.id === i.id)) run.items.push({ ...i, status: "pending" });
+    });
+  }
+  $("#queue-interval").value = store("pgt-queue-interval") || "3";
+  $("#queue-dialog").showModal();
+  clearInterval(queueTimer);
+  queueTimer = setInterval(tickQueue, 1000);
+  advanceQueue();
+}
+async function closeQueue() {
+  clearInterval(queueTimer);
+  if ($("#queue-dialog").open) $("#queue-dialog").close();
+  if (run && !run.items.some((i) => i.status === "pending")) run = null;
+  updateQueueButton();
+  try {
+    if (mode === "portfolio") await portfolio();
+    else {
+      $("#portfolio-count").textContent = (await api("/leads?mine=true")).length;
+      if (leads.length) {
+        leads = await api("/leads?ids=" + leads.map((e) => e.id).join(","));
+        render();
+      }
+    }
+  } catch {}
+}
+function advanceQueue() {
+  if (!run) return;
+  const next = run.items.findIndex((i) => i.status === "pending");
+  run.index = next < 0 ? run.items.length : next;
+  loadQueueItem();
+}
+async function loadQueueItem() {
+  const item = run.items[run.index];
+  run.lead = null;
+  renderQueue();
+  if (!item) return;
+  try {
+    const e = await api("/leads/" + item.id);
+    if (!run || run.items[run.index] !== item) return;
+    run.lead = e;
+  } catch (error) {
+    item.status = "skipped";
+    item.note = error.message;
+    queue.delete(item.id);
+    return advanceQueue();
+  }
+  renderQueue();
+}
+function renderQueue() {
+  const items = run.items;
+  const done = items.filter((i) => i.status !== "pending").length;
+  const item = items[run.index];
+  const e = run.lead;
+  const list =
+    '<ol class="queue-list">' +
+    items
+      .map(
+        (i, n) =>
+          '<li class="' +
+          i.status +
+          (n === run.index ? " current" : "") +
+          '"><span>' +
+          esc(i.name) +
+          "</span><small>" +
+          (i.status === "sent" ? "Aberto" : i.status === "skipped" ? "Pulado" : "") +
+          "</small></li>",
+      )
+      .join("") +
+    "</ol>";
+  const progress =
+    '<div class="queue-progress"><div><strong>' +
+    done +
+    " de " +
+    items.length +
+    '</strong><span class="muted"> concluídas</span></div><div class="queue-bar"><i style="width:' +
+    (items.length ? Math.round((done / items.length) * 100) : 0) +
+    '%"></i></div></div>';
+  let body;
+  if (!item) {
+    const sent = items.filter((i) => i.status === "sent").length;
+    body =
+      '<div class="queue-card queue-done"><h3>Fila concluída</h3><p class="muted">' +
+      sent +
+      " conversa(s) aberta(s) e " +
+      (items.length - sent) +
+      ' pulada(s). Registre o retorno de cada uma na ficha quando a pessoa responder.</p><button class="btn primary wide" id="queue-finish"><span>Concluir</span><span>✓</span></button></div>';
+  } else if (!e) {
+    body = '<div class="queue-card"><p class="muted">Carregando ' + esc(item.name) + "…</p></div>";
+  } else {
+    body =
+      '<div class="queue-card"><div class="queue-lead"><div><h3>' +
+      esc(e.name) +
+      '</h3><p class="small muted">' +
+      esc(e.categoryLabel) +
+      " · " +
+      esc(e.city || "Região selecionada") +
+      '</p></div><strong class="queue-phone">' +
+      esc(e.whatsapp || e.phone || "Sem número") +
+      "</strong></div>" +
+      (contactable(e)
+        ? ""
+        : '<p class="owner-note">Esta empresa não está mais disponível para você. Pule para a próxima.</p>') +
+      '<label>Mensagem<textarea class="message-box" id="queue-message" maxlength="3000">' +
+      esc(drafts.get(e.id) ?? e.message) +
+      '</textarea></label><p class="small muted queue-wait" id="queue-wait"></p><div class="actions"><button class="btn" id="queue-skip">Pular</button><button class="btn primary" id="queue-open">Abrir WhatsApp ↗</button></div><p class="small muted queue-hint">O WhatsApp abre com o texto pronto. Confira e toque em enviar você mesmo.</p></div>';
+  }
+  $("#queue-body").innerHTML = progress + body + list;
+  if ($("#queue-message"))
+    $("#queue-message").oninput = () => drafts.set(e.id, $("#queue-message").value);
+  if ($("#queue-skip"))
+    $("#queue-skip").onclick = () => {
+      item.status = "skipped";
+      queue.delete(item.id);
+      updateQueueButton();
+      advanceQueue();
+    };
+  if ($("#queue-open")) $("#queue-open").onclick = () => queueOpen(item, e);
+  if ($("#queue-finish")) $("#queue-finish").onclick = closeQueue;
+  tickQueue();
+}
+function tickQueue() {
+  if (!run) return;
+  const today = sentToday();
+  $("#queue-today").textContent =
+    "Hoje: " + today + " de " + DAILY_LIMIT + " abordagens sugeridas por dia.";
+  const button = $("#queue-open");
+  if (!button) return;
+  const wait = Math.max(0, Math.ceil((run.pauseUntil - Date.now()) / 1000));
+  const blocked = !contactable(run.lead) || today >= DAILY_LIMIT || wait > 0;
+  button.disabled = blocked || button.dataset.busy === "true";
+  $("#queue-wait").textContent =
+    today >= DAILY_LIMIT
+      ? "Você chegou ao limite diário sugerido. Continue amanhã para manter seu número saudável."
+      : wait > 0
+        ? "Pausa antes da próxima: " +
+          Math.floor(wait / 60) +
+          ":" +
+          String(wait % 60).padStart(2, "0") +
+          ". Use o tempo para revisar a mensagem."
+        : "";
+}
+async function queueOpen(item, e) {
+  if (!run || run.lead !== e || Date.now() < run.pauseUntil || sentToday() >= DAILY_LIMIT) return;
+  const text = $("#queue-message").value;
+  drafts.set(e.id, text);
+  const popup = window.open("about:blank", "_blank");
+  if (popup) popup.opener = null;
+  $("#queue-open").dataset.busy = "true";
+  tickQueue();
+  try {
+    const result = await api("/leads/" + e.id + "/contact", {
+      action: "OPEN_WHATSAPP",
+      message: text,
+    });
+    if (!popup) {
+      toast("Seu navegador bloqueou a nova aba. Permita popups e tente de novo.", true);
+      return;
+    }
+    popup.location.href = result.url;
+    item.status = "sent";
+    queue.delete(item.id);
+    store(sentKey(), sentToday() + 1);
+    run.pauseUntil = Date.now() + Number($("#queue-interval").value) * 60000;
+    updateQueueButton();
+    advanceQueue();
+  } catch (error) {
+    popup?.close();
+    toast(error.message, true);
+  } finally {
+    if ($("#queue-open")) delete $("#queue-open").dataset.busy;
+    tickQueue();
   }
 }
 async function team() {
@@ -641,6 +911,13 @@ async function init() {
       $("#profile-dialog").showModal();
     };
     $(".close-dialog").onclick = () => $("#profile-dialog").close();
+    $("#queue-button").onclick = openQueue;
+    $("#queue-close").onclick = closeQueue;
+    $("#queue-dialog").addEventListener("cancel", (ev) => {
+      ev.preventDefault();
+      closeQueue();
+    });
+    $("#queue-interval").onchange = () => store("pgt-queue-interval", $("#queue-interval").value);
     $("#profile-form").onsubmit = async (ev) => {
       ev.preventDefault();
       try {
