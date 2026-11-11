@@ -86,10 +86,10 @@ function date(value) {
 }
 function priority(e) {
   return e.score >= 70
-    ? ["Alta", "green", "#159766"]
+    ? ["Alta", "green", "#ffffff"]
     : e.score >= 40
-      ? ["Média", "amber", "#dca947"]
-      : ["Baixa", "gray", "#9ba69e"];
+      ? ["Média", "amber", "#e8b85c"]
+      : ["Baixa", "gray", "#5a5a5a"];
 }
 function badge(e) {
   let p = priority(e);
