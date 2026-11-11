@@ -23,6 +23,17 @@ class PostgresIntegrationTest extends FluxoIntegrationTest {
       java.time.LocalDate.now().plusDays(2)
     );
     jobs.criar("ANALYZE", a.id, lead.id, "migration-fixture", "{}");
+    jobs.criar("SEARCH", a.id, null, "migration-search-fixture", "{}");
+    var available = new br.com.wezttech.prospectgt.empresas.Empresa();
+    available.id = java.util.UUID.randomUUID();
+    available.sourceKey = "fixture:unclaimed";
+    available.name = "Oportunidade disponível";
+    available.category = "lojas";
+    available.sourceUrl = "https://example.com";
+    available.sourceName = "fixture";
+    available.fetchedAt = java.time.Instant.now();
+    available.updatedAt = available.fetchedAt;
+    empresas.saveAndFlush(available);
     String h2 =
       "jdbc:h2:mem:transfer" +
       java.util.UUID.randomUUID() +
@@ -45,14 +56,26 @@ class PostgresIntegrationTest extends FluxoIntegrationTest {
       var counts = br.com.wezttech.prospectgt.operacao.MigrarBancoLocal.copiar(copy, destination);
       assertThat(counts.get("app_user")).isEqualTo(2L);
       assertThat(counts.get("feedback")).isEqualTo(1L);
-      assertThat(counts.get("work_job")).isEqualTo(1L);
+      assertThat(counts.get("work_job")).isEqualTo(2L);
       try (
         var statement = destination.createStatement();
-        var result = statement.executeQuery("SELECT owner_id,state FROM lead")
+        var result = statement.executeQuery(
+          "SELECT owner_id,state FROM lead WHERE owner_id IS NOT NULL"
+        )
       ) {
         assertThat(result.next()).isTrue();
         assertThat(result.getObject(1)).isEqualTo(a.id);
         assertThat(result.getString(2)).isEqualTo("FOLLOW_UP");
+      }
+      try (
+        var statement = destination.createStatement();
+        var result = statement.executeQuery(
+          "SELECT owner_id,state FROM lead WHERE source_key='fixture:unclaimed'"
+        )
+      ) {
+        assertThat(result.next()).isTrue();
+        assertThat(result.getObject(1)).isNull();
+        assertThat(result.getString(2)).isEqualTo("AVAILABLE");
       }
       try (
         var statement = destination.prepareStatement(
@@ -75,7 +98,7 @@ class PostgresIntegrationTest extends FluxoIntegrationTest {
         var result = statement.executeQuery("SELECT COUNT(*) FROM lead")
       ) {
         assertThat(result.next()).isTrue();
-        assertThat(result.getLong(1)).isEqualTo(1L);
+        assertThat(result.getLong(1)).isEqualTo(2L);
       }
     }
   }

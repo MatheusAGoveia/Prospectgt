@@ -60,12 +60,8 @@ public final class MigrarBancoLocal {
                   1,
                   Math.toIntExact(clob.length())
                 );
-                if (value == null) insert.setNull(
-                  i,
-                  columns.getColumnType(i) == Types.CLOB
-                    ? Types.LONGVARCHAR
-                    : columns.getColumnType(i)
-                );
+                // O tipo JDBC UUID do H2 é BINARY; deixe o destino inferir nulos.
+                if (value == null) insert.setNull(i, Types.NULL);
                 else insert.setObject(i, value);
               }
               insert.executeUpdate();
