@@ -2,10 +2,6 @@
 
 Prospecção para vender landing pages e sites de vendas de R$ 500 a R$ 2.000. O vendedor busca empresas reais por ramo e região, consulta sinais básicos, assume uma oportunidade, personaliza a mensagem e abre o WhatsApp. O envio é manual.
 
-O projeto usa Java, Spring Boot e dados do OpenStreetMap para cruzar a região selecionada no mapa com o catálogo de empresas e a carteira de oportunidades.
-
-[Ver capturas do MVP](docs/evidencias/README.md) · [Executar no Windows](#executar-no-windows)
-
 ## Executar no Windows
 
 Pré-requisito: Python 3 e internet na primeira preparação. Java 21 e Maven são baixados para `.tools`, com verificação do arquivo. Não é preciso instalá-los globalmente.
